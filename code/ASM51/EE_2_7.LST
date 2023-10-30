@@ -1,0 +1,907 @@
+ee_2_7                                                                                                                  PAGE 1
+06E9 D000E800F4          1     ;               *** Program obslugujacy emulator pamieci EPROM ***
+     00FA00FD00
+     FD01FF010D
+     0A000D0A20
+     2020202020
+     2020202020
+     2020203C20
+     456D756C61
+     746F722045
+     50524F4D20
+     7665723A20
+     322E37203E
+     0D0A0A2020
+     2020202020
+     2020202020
+     202057737A
+     7973746B69
+     6520707261
+     7761207A61
+     7374727A65
+     7A6F6E652E
+     0D0A4B6F70
+     696F77616E
+     6965207072
+     6F6772616D
+     7520772063
+     616C6F7363
+     69206C7562
+     207720637A
+     6573636961
+     6368207A61
+     62726F6E69
+     6F6E652E0D
+     0A0A50726F
+     6772616D20
+     6E6120E643
+     2038303531
+     206E617069
+     73616C203A
+     20546F6D61
+     737A204E6F
+     77616B6F77
+     736B690D0A
+     0A53706563
+     6A616C6E65
+     20647A6965
+     6B6920646C
+     613A0D0A6E
+     6175637A79
+     6369656C69
+     20202D207A
+     6120777370
+     6172636965
+     2C20726164
+     7920692064
+     6F73746570
+     20646F2070
+     7261636F77
+     6E690D0A4B
+     6C6F736120
+     2020202020
+     20202D207A
+     612073796D
+     756C61746F
+     7220455052
+     4F4D0D0A4D
+     656E746F73
+     6120202020
+     20202D207A
+     612070726F
+     6772616D6F
+     77616E6965
+     206B6F7374
+     656B204550
+     524F4D2C20
+     3839433531
+     2069206C69
+     7465726174
+     7572650D0A
+     546173616B
+     6120202020
+     2020202D20
+     7A61206472
+     7567692073
+     796D756C61
+     746F722069
+     206C697465
+     7261747572
+     650D0A446F
+     7469202020
+     2020202020
+     202D207A61
+     2063696572
+     706C69776F
+     73630D0A00
+     0207
+                         2
+                         3                             ;*** ZNACZENIE BITOW STERUJACYCH ***
+  00B2                   4     LED     BIT P3.2        ; DIODA LED:          0=ON
+                         5                             ;                     1=OFF
+                         6
+  00B3                   7     GATE    BIT P3.3        ; TRYB PRACY:         0=SYMULACJA
+                         8                             ;                     1=DOSTEP DO PAMIECI
+                         9
+  00B4                  10     SEL0    BIT P3.4        ; DOSTEP DO PAMIECI: SEL0 SEL1
+  00B5                  11     SEL1    BIT P3.5        ;                     0    0   ROM aktywny
+                        12                             ;                     0    1   RAM i ROM nieaktywne
+                        13                             ;                     1    0   stan nie dozwolony
+                        14                             ;                     1    1   RAM aktywny
+                        15
+0704 020098             16             LJMP INIT
+****WARNING: No instruction found at address 0x00. Consider usage of appropriate ORG directive to clarify correct code placement.
+                        17
+                        18             ORG 0BH                 ;*** TIMER 0 INTERRUPT ***
+000B C0D0               19             PUSH PSW
+000D C28C               20             CLR TR0                 ;zatrzymaj licznik T0
+000F 758C00             21             MOV TH0,#0              ;zeruj jego zawartosc
+0012 758A00             22             MOV TL0,#0
+0015 D2B2               23             SETB LED                ;zgas LED
+0017 D0D0               24             POP PSW
+0019 32                 25             RETI
+                        26
+                        27             ORG 23H                 ;*** SERIAL INTERRUPT ***
+0023 C0D0               28             PUSH PSW                ;zapamietaj slowo stanu
+0025 C0E0               29             PUSH ACC                ;zapamietaj A
+0027 C2B2               30             CLR LED                 ;zapal LED
+0029 20981A             31             JB RI,RX                ;jesli odebrano znak to skok do RX
+002C 209900             32             JB TI,TX                ;jesli nadano znak to skok do TX
+                        33     TX:
+002F E517               34             MOV A,17H               ;zaladuj A bajtem nadanym
+0031 2515               35             ADD A,15H               ;dodaj CRC L do A
+0033 F515               36             MOV 15H,A               ;aktualizuj sume CRC L
+0035 5002               37             JNC ENDCRC1
+0037 0514               38             INC 14H                 ;jesli C=1 to zwieksz CRC H
+                        39     ENDCRC1:
+0039 E9                 40             MOV A,R1                ;R1 to liczba bajtow nadanych
+003A B51304             41             CJNE A,13H,T01          ;jesli R1<>wielkosc paczki to skok
+003D D204               42             SETB 4                  ;jesli R1=@13H to koniec paczki danych
+003F 8048               43             SJMP EOTI
+                        44     T01:
+0041 09                 45             INC R1                  ;zwieksz licznik nadanych bajtow
+0042 D205               46             SETB 5                  ;ustaw znacznik nadawania
+0044 8043               47             SJMP EOTI
+                        48     RX:
+0046 C29C               49             CLR REN                 ;zablokuj odbiornik RS-232
+0048 E599               50             MOV A,SBUF              ;dodaj bajt odebrany do sumy CRC L
+004A 2515               51             ADD A,15H
+004C F515               52             MOV 15H,A               ;aktualizuj sume CRC L
+004E 5002               53             JNC ENDCRC2             ;jesli nie bylo przeniesienia to koniec
+0050 0514               54             INC 14H                 ;jesli C=1 to zwieksz sume CRC H o 1
+                        55     ENDCRC2:
+0052 200110             56             JB 1,R01                ;jesli znacznik kodu rozkazu=1 to skok
+0055 C202               57             CLR 2                   ;jesli  BIT 1=0 to pozostale dwa takze=0
+0057 C203               58             CLR 3
+0059 751303             59             MOV 13H,#3              ;ustawia wielkosc paczki na 3 bajty
+005C 7901               60             MOV R1,#1               ;ustaw licznik odebranych/nadanych bajtow na 1
+005E A699               61             MOV @R0,SBUF            ;zapisz w buforze kod instrukcji
+0060 08                 62             INC R0                  ;przesun wskaznik na nastepny bajt bufora
+0061 D201               63             SETB 1                  ;ustaw bit znacznika kodu instrukcji
+0063 801E               64             SJMP EORI
+                        65     R01:
+0065 200208             66             JB 2,R02
+0068 09                 67             INC R1                  ;zwieksz licznik odebranych/nadanych bajtow
+0069 A699               68             MOV @R0,SBUF            ;zapisz 2 bajt instrukcji w buforze
+006B 08                 69             INC R0                  ;przesun wskaznik bufora instrukcji
+006C D202               70             SETB 2                  ;ustaw znacznik 2 bajtu instrukcji
+006E 8013               71             SJMP EORI
+                        72     R02:
+0070 200308             73             JB 3,R03
+0073 09                 74             INC R1
+0074 A699               75             MOV @R0,SBUF
+0076 08                 76             INC R0
+0077 D203               77             SETB 3                  ;ustaw znacznik 3 bajtu instrukcji
+0079 8008               78             SJMP EORI
+                        79     R03:
+007B 09                 80             INC R1                  ;zwieksz licznik odebranych/nadanych bajtow
+007C 859916             81             MOV 16H,SBUF            ;w 16H znajduje sie bajt odebrany
+007F D206               82             SETB 6                  ;ustawia znacznik danych do odbioru
+0081 8000               83             SJMP EORI
+                        84     EORI:                           ;koniec procedury odczytu
+0083 C298               85             CLR RI                  ;zerowanie znacznika RI
+0085 D29C               86             SETB REN                ;wlaczenie odbiornika RS-232
+0087 8002               87             SJMP EOI
+                        88     EOTI:
+0089 C299               89             CLR TI                  ;zerowanie znacznika TI
+                        90     EOI:
+008B D28C               91             SETB TR0                ;start licznika T0
+008D D0E0               92             POP ACC                 ;odtworz A
+008F D0D0               93             POP PSW                 ;odtworz slowo stanu
+0091 32                 94             RETI                    ;*** END ***
+                        95
+                        96     ORG 98H                 ;*** PROGRAM GLOWNY ***
+                        97
+                        98     INIT:
+0098 758117             99             MOV SP,#17H             ;ustaw stos
+009B 7106              100             ACALL INITREG           ;inicjacja zmiennych
+009D 7405              101             MOV A,#05H
+009F 5151              102             ACALL SETMODE           ;ustawienie predkosci transmisji na tryb 5
+00A1 51B7              103             ACALL MEMTEST           ;sprawdz pamieci
+00A3 5180              104             ACALL READY             ;wypisz logo
+00A5 E587              105             MOV A,87H               ;ustaw tryb IDL
+00A7 4401              106             ORL A,#00000001B
+00A9 F587              107             MOV 87H,A
+                       108
+                       109     MAIN:
+00AB 200455            110             JB 4,SENDCRC            ;jesli koniec paczki to nadaj sume CRC
+00AE 20071F            111             JB 7,REG                ;jesli dostep do RAM procesora to skok
+00B1 200624            112             JB 6,LOADMEM            ;zapisz bajt w pamieci RAM
+00B4 200535            113             JB 5,SENDMEM            ;nadaj bajt odczytany z pamieci RAM
+00B7 200306            114             JB 3,NOIDLE
+00BA E587              115             MOV A,87H               ;ustaw tryb IDL
+00BC 4401              116             ORL A,#00000001B
+00BE F587              117             MOV 87H,A
+                       118     NOIDLE:
+00C0 3003E8            119             JNB 3,MAIN              ;jesli odebrano 3 bajtowy kod instrukcji
+00C3 2000E5            120             JB 0,MAIN               ;i jesli kod instrukcji jest OK to skok
+00C6 3164              121             ACALL DECODE            ;dekoduj kod instrukcji
+                       122     CHECK:
+00C8 E9                123             MOV A,R1                ;R1 to liczba bajtow nadanych
+00C9 B513DF            124             CJNE A,13H,MAIN         ;jesli R1<>wielkosc paczki to skok
+00CC D204              125             SETB 4                  ;jesli R1=@13H to koniec paczki danych
+00CE 80DB              126             SJMP MAIN
+                       127     REG:
+00D0 200659            128             JB 6,LOADREG            ;zapisz bajt w pamieci RAM procesora
+00D3 200571            129             JB 5,SENDREG            ;nadaj bajt odczytany z pamieci RAM procesora
+00D6 80D3              130             SJMP MAIN
+                       131
+                       132                                     ;*** PROCEDURY ***
+                       133
+                       134     LOADMEM:                        ;*** PROCEDURA LADUJACA 1 BAJT DO PAMIECI ***
+00D8 C29C              135             CLR REN                 ;blokuj odbiornik RS-232
+00DA E516              136             MOV A,16H               ;przepisz bajt odebrany do A
+00DC 8C83              137             MOV DPH,R4
+00DE 8D82              138             MOV DPL,R5
+00E0 F0                139             MOVX @DPTR,A            ;zapisz bajt
+00E1 A3                140             INC DPTR                ;zwieksz adres o 1
+00E2 AC83              141             MOV R4,DPH
+00E4 AD82              142             MOV R5,DPL
+00E6 C206              143             CLR 6                   ;zeruj znacznik odbioru danych
+00E8 D29C              144             SETB REN                ;uaktywnij odbiornik RS-232
+00EA 01C8              145             AJMP CHECK              ;*** END LOADRAM ***
+                       146
+                       147     SENDMEM:                        ;*** PROCEDURA ODCZYTUJACA 1 BAJT Z PAMIECI ***
+00EC C29C              148             CLR REN                 ;blokuj odbiornik RS-232
+00EE 8E83              149             MOV DPH,R6
+00F0 8F82              150             MOV DPL,R7
+00F2 E0                151             MOVX A,@DPTR            ;bajt odczytany w A
+00F3 A3                152             INC DPTR                ;zwieksz adres o 1
+00F4 AE83              153             MOV R6,DPH
+00F6 AF82              154             MOV R7,DPL
+00F8 F517              155             MOV 17H,A               ;zaladuj bajt odebrany z A
+00FA 851799            156             MOV SBUF,17H            ;wyslij bajt przez RS-232
+00FD C205              157             CLR 5                   ;zeruj znacznik nadawania danych
+00FF D29C              158             SETB REN                ;uaktywnij odbiornik RS-232
+0101 01C8              159             AJMP CHECK              ;*** END SENDRAM***
+                       160
+                       161     SENDCRC:                        ;*** PROCEDURA WYSYLAJACA SUME KONTROLNA ***
+0103 C2AC              162             CLR ES                  ;zablokuj przerwania z RS-232
+0105 2099FD            163             JB TI,$                 ;czekaj na wyslanie calego znaku
+0108 851499            164             MOV SBUF,14H            ;CRC H
+010B 3099FD            165             JNB TI,$                ;czekaj na wyslanie calego znaku
+010E C299              166             CLR TI                  ;zeruj znacznik TI
+0110 851599            167             MOV SBUF,15H            ;CRC L
+0113 3099FD            168             JNB TI,$
+0116 C299              169             CLR TI
+0118 751303            170             MOV 13H,#3              ;ustaw domyslny rozmiar pakietu
+011B 751400            171             MOV 14H,#0              ;zerowanie
+011E 751500            172             MOV 15H,#0              ;CRC
+0121 752000            173             MOV 20H,#0              ;rozpoczecie nowego cyklu
+0124 7810              174             MOV R0,#10H             ;ustaw R0 na poczatek bufora instrukcji
+0126 7900              175             MOV R1,#0               ;zeruj licznik odebranych/nadanych bajtow
+0128 D2AC              176             SETB ES                 ;wlacz przerwania z RS-232
+012A 01AB              177             AJMP MAIN               ;*** END SENDCRC ***
+                       178
+                       179     LOADREG:                        ;*** PROCEDURA ZAPISUJACA BAJT W PAMIECI PROCESORA ***
+012C C29C              180             CLR REN                 ;blokuj odbiornik RS-232
+012E ED                181             MOV A,R5                ;sprawdz czy adres L=0 (R0)
+012F 7004              182             JNZ LREG0               ;jesli adres L<>R0 to skok
+0131 A816              183             MOV R0,16H              ;zapisz bajt odebrany w R0
+0133 8007              184             SJMP LREG1
+                       185     LREG0:
+0135 E8                186             MOV A,R0
+0136 C0E0              187             PUSH ACC                ;zapamietaj R0
+0138 ED                188             MOV A,R5                ;laduj A adresem L
+0139 F8                189             MOV R0,A                ;zapisz adres L w R0
+013A A616              190             MOV @R0,16H             ;zapisz bajt w pamieci procesora
+                       191     LREG1:
+013C C206              192             CLR 6                   ;zeruj znacznik odbioru danych
+013E C207              193             CLR 7                   ;zeruj znacznik dostepu do pamieci procesora
+0140 D0E0              194             POP ACC
+0142 F8                195             MOV R0,A                ;przywroc R0
+0143 D29C              196             SETB REN                ;uaktywnij odbiornik RS-232
+0145 01C8              197             AJMP CHECK              ;*** END LOADREG ***
+                       198
+                       199     SENDREG:
+0147 C29C              200             CLR REN                 ;blokuj odbiornik RS-232
+0149 E8                201             MOV A,R0
+014A C0E0              202             PUSH ACC                ;zapamietaj R0
+014C EF                203             MOV A,R7
+014D 7003              204             JNZ SREG0
+014F E8                205             MOV A,R0
+0150 8002              206             SJMP SREG1
+                       207     SREG0:
+0152 F8                208             MOV R0,A                ;zapisz adres L w R0
+0153 E6                209             MOV A,@R0               ;odczytaj bajt z pamieci procesora
+                       210     SREG1:
+0154 F517              211             MOV 17H,A               ;zapisz go w buforze nadawania
+0156 851799            212             MOV SBUF,17H            ;wyslij ten bajt przez RS-232
+0159 C205              213             CLR 5                   ;zeruj znacznik nadawania danych
+015B C207              214             CLR 7                   ;zeruj znacznik dostepu do pamieci procesora
+015D D0E0              215             POP ACC
+015F F8                216             MOV R0,A                ;przywroc R0
+0160 D29C              217             SETB REN                ;uaktywnij odbiornik RS-232
+0162 01C8              218             AJMP CHECK              ;*** END SENDREG***
+                       219
+                       220     DECODE:                         ;*** PROCEDURA DEKODUJACA ROZKAZ ***
+0164 E510              221             MOV A,10H               ;kod rozkazu w A
+                       222
+                       223     _00:                            ;* (00H) NOP *
+0166 7002              224             JNZ _01
+0168 414E              225             AJMP END_DECODE
+                       226
+                       227     _01:                            ;* (01H-40H) ZAPIS 1-64 BAJTOW POD ADRES *
+016A B44002            228             CJNE A,#40H,_NIE20
+016D 8002              229             SJMP _01_40
+                       230     _NIE20:
+016F 5014              231             JNC _41                 ;jesli A>40H to skok
+                       232     _01_40:
+0171 E510              233             MOV A,10H
+0173 2403              234             ADD A,#3                ;3 + kod instrukcji = nowy rozmiar paczki
+0175 F513              235             MOV 13H,A               ;zaladuj nowa dana
+0177 AB10              236             MOV R3,10H              ;zaladuj licznik bajtow L
+0179 AC11              237             MOV R4,11H              ;zaladuj adres docelowy (H I L)
+017B AD12              238             MOV R5,12H              ;adresem odebranym z RS-232
+017D D2B3              239             SETB GATE               ;wymusza tryb dostepu
+017F D2B4              240             SETB SEL0               ;do pamieci
+0181 D2B5              241             SETB SEL1               ;RAM
+0183 414E              242             AJMP END_DECODE
+                       243
+                       244     _41:                            ;* (41H-80H) ODCZYT 1-64 BAJTOW Z ADRESU *
+0185 B48002            245             CJNE A,#80H,_NIE80
+0188 8002              246             SJMP _41_80
+                       247     _NIE80:
+018A 5012              248             JNC _A0                 ;jesli A>80h to skok
+                       249     _41_80:
+018C E510              250             MOV A,10H               ;zaladuj A kodem rozkazu
+018E C3                251             CLR C                   ;zeruj C
+018F 9440              252             SUBB A,#40H             ;odejmij od kodu rozkazu 40H (ilosc bajtow do odczytu)
+0191 FB                253             MOV R3,A                ;zaladuj licznik bajtow
+0192 2403              254             ADD A,#3                ;zwieksz o 3
+0194 F513              255             MOV 13H,A               ;i zaladuj jako wielkosc paczki
+0196 AE11              256             MOV R6,11H              ;zaladuj adres zrodlowy (H I L)
+0198 AF12              257             MOV R7,12H              ;adresem odebranym z RS-232
+019A D205              258             SETB 5                  ;ustaw znacznik nadawania
+019C 414E              259             AJMP END_DECODE
+                       260
+                       261     _A0:                            ;* (A0H) USTAW TRYB "SYMULACJA" *
+019E B4A008            262             CJNE A,#0A0H,_B0
+01A1 C2B3              263             CLR GATE
+01A3 C2B4              264             CLR SEL0
+01A5 D2B5              265             SETB SEL1
+01A7 414E              266             AJMP END_DECODE
+                       267
+                       268     _B0:                            ;* (B0H) USTAW TRYB "ZAPIS/ODCZYT" RAM *
+01A9 B4B008            269             CJNE A,#0B0H,_BB
+01AC D2B3              270             SETB GATE
+01AE D2B4              271             SETB SEL0
+01B0 D2B5              272             SETB SEL1
+01B2 414E              273             AJMP END_DECODE
+                       274
+                       275     _BB:                            ;* (BBH) USTAW TRYB "ODCZYT" ROM *
+01B4 B4BB08            276             CJNE A,#0BBH,_C0
+01B7 D2B3              277             SETB GATE
+01B9 C2B4              278             CLR SEL0
+01BB C2B5              279             CLR SEL1
+01BD 414E              280             AJMP END_DECODE
+                       281
+                       282     _C0:                            ;* (C0H) USTAW PREDKOSC RS-232 *
+01BF B4C00A            283             CJNE A,#0C0H,_CC
+01C2 7405              284             MOV A,#5
+01C4 51AE              285             ACALL DELAY             ;opoznienie przed zmiana predkosci pracy RS-232
+01C6 E512              286             MOV A,12H               ;3 bajt kodu instrukcji zawiera tryb pracy
+                       287                                     ;2 bajt jest nie istotny
+01C8 5151              288             ACALL SETMODE           ;zmien predkosc RS-232
+01CA 414E              289             AJMP END_DECODE
+                       290
+                       291     _CC:                            ;* (CCH) USTAW PREDKOSC RS-232 RECZNIE *
+01CC B4CC27            292             CJNE A,#0CCH,_D0
+01CF 7405              293             MOV A,#5
+01D1 51AE              294             ACALL DELAY             ;opoznienie przed zmiana predkosci pracy RS-232
+01D3 C2AF              295             CLR EA                  ;zablokowanie przerwan z RS-232
+01D5 C29C              296             CLR REN                 ;wylaczenie odbiornika RS-232
+01D7 C28E              297             CLR TR1                 ;wylaczenie licznika T1
+01D9 85118D            298             MOV TH1,11H             ;zapisz nowa wartosc do licznika T1
+01DC D28E              299             SETB TR1                ;start licznika T1
+01DE E512              300             MOV A,12H               ;sprawdz czy wyzerowac SMOD
+01E0 6005              301             JZ MODE0                ;jesli tak to skok
+                       302     MODE1:
+01E2 438780            303             ORL 87H,#10000000B      ;ustaw SMOD=1
+01E5 8003              304             SJMP END_MODE
+                       305     MODE0:
+01E7 53877F            306             ANL 87H,#01111111B      ;zeruj SMOD=0
+                       307     END_MODE:
+01EA 740A              308             MOV A,#10
+01EC 51AE              309             ACALL DELAY             ;opoznienie przed zmiana predkosci pracy RS-232
+01EE D2AF              310             SETB EA                 ;wlaczenie przerwan
+01F0 D2AC              311             SETB ES                 ;wlaczenia przerwan RS-232
+01F2 D29C              312             SETB REN                ;wlaczenie odbiornika RS-232
+01F4 414E              313             AJMP END_DECODE
+                       314
+                       315     _D0:                            ;* (D0H) ZAPISZ 1 BAJT DO PAMIECI PROCESORA *
+01F6 B4D009            316             CJNE A,#0D0H,_DD
+01F9 751304            317             MOV 13H,#04H            ;ustawia wielkosc paczki na 4 bajty
+01FC AD12              318             MOV R5,12H              ;zaladuj docelowy adres L
+01FE D207              319             SETB 7                  ;ustaw znacznik dostepu do pamieci procesora
+0200 414E              320             AJMP END_DECODE
+                       321
+                       322     _DD:                            ;* (DDH) ODCZYTAJ 1 BAJT Z PAMIECI PROCESORA *
+0202 B4DD0B            323             CJNE A,#0DDH,_E0
+0205 751304            324             MOV 13H,#04H            ;ustawia wielkosc paczki na 4 bajty
+0208 AF12              325             MOV R7,12H              ;zaladuj zrodlowy adres L
+020A D205              326             SETB 5                  ;ustaw znacznik nadawania
+020C D207              327             SETB 7                  ;ustaw znacznik dostepu do pamieci procesora
+020E 414E              328             AJMP END_DECODE
+                       329
+                       330     _E0:                            ;* (EOH) USTAW TRYB POWER DOWN *
+0210 B4E008            331             CJNE A,#0E0H,_F0
+0213 E587              332             MOV A,87H
+0215 4402              333             ORL A,#00000010B
+0217 F587              334             MOV 87H,A
+0219 414E              335             AJMP END_DECODE
+                       336
+                       337     _F0:                            ;* (F0H) PODAJ WERSJE PROGRAMU *
+021B B4F00A            338             CJNE A,#0F0H,_F1
+021E 751400            339             MOV 14H,#0              ;ustaw CRC na 0
+0221 751500            340             MOV 15H,#0
+0224 5180              341             ACALL READY
+0226 414E              342             AJMP END_DECODE
+                       343
+                       344     _F1:                            ;* (F1H) WYSWIETL LOGO EMULATORA *
+0228 B4F113            345             CJNE A,#0F1H,_FF
+022B E4                346             CLR A
+022C 900702            347             MOV DPTR,#VER
+022F 93                348             MOVC A,@A+DPTR
+0230 F514              349             MOV 14H,A               ;crc L=VER
+0232 7401              350             MOV A,#1
+0234 93                351             MOVC A,@A+DPTR
+0235 F515              352             MOV 15H,A               ;crc H=VER
+0237 90051B            353             MOV DPTR,#STR1          ;zaladuj adres ciagu znakow
+023A 519B              354             ACALL SENDSTR           ;wyslij go
+023C 414E              355             AJMP END_DECODE
+                       356
+                       357     _FF:                            ;* (FFH) CREDITS *
+023E B4FF0D            358             CJNE A,#0FFH,END_DECODE
+0241 75143A            359             MOV 14H,#3AH            ;ustaw CRC (":)")
+0244 751529            360             MOV 15H,#29H
+0247 900538            361             MOV DPTR,#STR2          ;zaladuj adres ciagu znakow
+024A 519B              362             ACALL SENDSTR           ;wyslij go
+024C 414E              363             AJMP END_DECODE
+                       364
+                       365     END_DECODE:                     ;koniec procedury pomyslny
+024E D200              366             SETB 0                  ;ustaw znacznik zdekodowanego rozkazu
+0250 22                367             RET                     ;*** END DECODE ***
+                       368
+                       369     SETMODE:                        ;*** PROCEDURA USTAWIAJACA PREDKOSC RS-232 ***
+0251 C2AF              370             CLR EA                  ;zablokowanie przerwan
+0253 C29C              371             CLR REN                 ;wylaczenie odbiornika RS-232
+0255 C28E              372             CLR TR1                 ;wylaczenie licznika T1
+0257 758921            373             MOV TMOD,#00100001B     ;ustawienie licznika T1: tryb 2 i T0: tryb 1
+025A 759860            374             MOV SCON,#01100000B     ;ustawienie transmisjii szeregowej
+                       375                                     ;na tryb 1 (8 bitow)
+                       376                                     ;sprzetowe odrzucanie znakow bez bitu stopu
+025D 900509            377             MOV DPTR,#BPS           ;zaladowanie adresu tablicy predkosci
+0260 75F002            378             MOV B,#2                ;w A numer trybu pracy (predkosc)
+0263 A4                379             MUL AB                  ;A*2=adres komorki (2 bajtowej)
+0264 C0E0              380             PUSH ACC                ;zapamietaj ten adres
+0266 93                381             MOVC A,@A+DPTR          ;odczytanie wartosci z tablicy predkosci
+0267 F58D              382             MOV TH1,A               ;ustalenie predkosci transmisjii
+0269 D0E0              383             POP ACC                 ;odtworz adres komorki w tablicy
+026B 04                384             INC A                   ;i zwieksz go o jeden (nastepny bajt)
+026C 93                385             MOVC A,@A+DPTR          ;zaladuj do A
+026D 6005              386             JZ SMOD0                ;jesli A=0 to skocz
+                       387     SMOD1:
+026F 438780            388             ORL 87H,#10000000B      ;ustaw SMOD=1
+0272 8003              389             SJMP END_SET
+                       390     SMOD0:
+0274 53877F            391             ANL 87H,#01111111B      ;zeruj SMOD=0
+                       392     END_SET:
+0277 D28E              393             SETB TR1                ;start licznika T1
+0279 D2AC              394             SETB ES                 ;odblokowanie przerwan z RS-232
+027B D2AF              395             SETB EA                 ;wlaczenie przerwan
+027D D29C              396             SETB REN                ;wlaczenie odbiornika RS-232
+027F 22                397             RET                     ;*** END SETMODE ***
+                       398
+                       399
+                       400     READY:                          ;*** PROCEDURA WYPISUJACA WERSJE PROGRAMU ***
+0280 C2AC              401             CLR ES                  ;wylacz przerwania z RS-232
+0282 900702            402             MOV DPTR,#VER           ;zaladuj adres ciagu znakow
+0285 E4                403             CLR A                   ;przesuniecie 0
+0286 93                404             MOVC A,@A+DPTR
+0287 F599              405             MOV SBUF,A              ;wyslij znak
+0289 3099FD            406             JNB TI,$                ;czekaj na RS-232
+028C C299              407             CLR TI                  ;zeruj znacznik przerwania
+028E A3                408             INC DPTR                ;zwieksz adres
+028F E4                409             CLR A                   ;przesuniecie 0
+0290 93                410             MOVC A,@A+DPTR
+0291 F599              411             MOV SBUF,A              ;wyslij znak
+0293 3099FD            412             JNB TI,$                ;czekaj na RS-232
+0296 C299              413             CLR TI                  ;zeruj znacznik przerwania
+0298 D2AC              414             SETB ES                 ;wlacz przerwania z RS-232
+029A 22                415             RET                     ;*** END READY ***
+                       416
+                       417     SENDSTR:                        ;*** PROCEDURA WYSYLAJACA CIAG ZNAKOW ***
+                       418                                     ;DPTR=adres poczatku ciagu
+                       419                                     ;CRC=dowolne (nie jest zliczane)
+029B C2AC              420             CLR ES                  ;wylacz przerwania z RS-232
+                       421     REP:
+029D C2B2              422             CLR LED                 ;wlacz LED
+029F E4                423             CLR A
+02A0 93                424             MOVC A,@A+DPTR          ;odczytaj bajt
+02A1 A3                425             INC DPTR                ;zwieksz wskaznik o 1
+02A2 F599              426             MOV SBUF,A              ;wyslij bajt
+02A4 3099FD            427             JNB TI,$                ;czekaj na koniec trnasmisji
+02A7 C299              428             CLR TI
+02A9 70F2              429             JNZ REP                 ;powtarzaj dopoki bajt nie bedzie zerem
+02AB D2AC              430             SETB ES                 ;wlacz przerwania z RS-232
+02AD 22                431             RET                     ;*** END SENDSTR ***
+                       432
+                       433     DELAY:                          ;*** PROCEDURA OPOZNIAJACA ***
+                       434                                     ;powtorz A razy przepelnienie licznika T0
+                       435                                     ;DELAY=(A*12*65535)+2 cykli
+02AE D28C              436             SETB TR0                ;uruchom licznik T0
+02B0 208CFD            437             JB TR0,$                ;skacz dopoki T0 nie zatrzyma sie
+02B3 14                438             DEC A                   ;zmniejsz A o 1
+02B4 70F8              439             JNZ DELAY               ;skacz jesli A<>0
+02B6 22                440             RET                     ;*** END DELAY ***
+                       441
+                       442     MEMTEST:                        ;*** PROCEDURA SPRAWDZAJACA PAMIECI ***
+02B7 C0D0              443             PUSH PSW                ;zapamietaj slowo stanu
+02B9 D2B3              444             SETB GATE               ;ustaw tryb "ZAPIS/ODCZYT" RAM
+02BB D2B4              445             SETB SEL0
+02BD D2B5              446             SETB SEL1
+02BF C2D4              447             CLR RS1                 ;wybierz 2 bank rejestrow
+02C1 D2D3              448             SETB RS0
+02C3 78AA              449             MOV R0,#0AAh            ;wartosc zapisywana
+02C5 7C00              450             MOV R4,#00h             ;Adres H poczatku
+02C7 7D00              451             MOV R5,#00h             ;Adres L poczatku
+02C9 8C83              452             MOV DPH,R4
+02CB 8D82              453             MOV DPL,R5
+                       454     FILLMEM:                        ;wypelnij cala pamiec RAM
+02CD E8                455             MOV A,R0
+02CE F0                456             MOVX @DPTR,A            ;zapisz wartosc
+02CF A3                457             INC DPTR                ;zwieksz adres
+02D0 E582              458             MOV A,DPL
+02D2 70F9              459             JNZ FILLMEM             ;jesli A<>0 to skok
+02D4 E583              460             MOV A,DPH
+02D6 70F5              461             JNZ FILLMEM             ;jesli A<>0 to skok
+02D8 8C83              462             MOV DPH,R4              ;zaladuj adres poczatkowy
+02DA 8D82              463             MOV DPL,R5
+                       464     CHECKMEM:
+02DC E0                465             MOVX A,@DPTR            ;odczytaj wartosc
+02DD B5080E            466             CJNE A,08h,FAILMEM      ;cjne a,r0,failmem
+02E0 7400              467             MOV A,#0
+02E2 F0                468             MOVX @DPTR,A            ;jesli komorka OK to ja zeruje
+02E3 A3                469             INC DPTR                ;zwieksz adres
+02E4 E582              470             MOV A,DPL
+02E6 70F4              471             JNZ CHECKMEM            ;skok jesli A<>0
+02E8 E583              472             MOV A,DPH
+02EA 70F0              473             JNZ CHECKMEM            ;skok jesli A<>0
+02EC 8015              474             SJMP OKMEM              ;pamiec sprawna
+                       475     FAILMEM:                        ;jesli pamiec niesprawna to miga LED
+02EE 858390            476             MOV P1,DPH              ;na porcie P1 jest Adres H
+02F1 C2B2              477             CLR LED                 ;zapal LED
+                       478     NOEXIT:
+02F3 7880              479             MOV R0,#80h
+                       480     LOOP1:
+02F5 79FF              481             MOV R1,#0FFh
+                       482     LOOP2:
+02F7 19                483             DEC R1
+02F8 E9                484             MOV A,R1
+02F9 70FC              485             JNZ LOOP2
+02FB 18                486             DEC R0
+02FC E8                487             MOV A,R0
+02FD 70F6              488             JNZ LOOP1
+02FF B2B2              489             CPL LED                 ;miga LED
+0301 80F0              490             SJMP NOEXIT             ;petla bez wyjscia
+                       491     OKMEM:
+0303 D0D0              492             POP PSW
+0305 22                493             RET                     ;*** END MEMTEST ***
+                       494
+                       495     INITREG:                        ;*** PROCEDURA INICJUJACA WSZYSTKIE ZMIENNE ***
+0306 7810              496             MOV R0,#10H             ;ustaw poczatek bufora kodu instrukcji
+0308 7900              497             MOV R1,#0               ;zeruj licznik odebranych/nadanych bajtow
+030A 7A00              498             MOV R2,#0               ;zeruj licznik bajtow
+030C 7B00              499             MOV R3,#0               ;
+030E 751303            500             MOV 13H,#03H            ;ustaw wielkosc paczki na 3
+0311 751400            501             MOV 14H,#0              ;zeruj sume CRC H
+0314 751500            502             MOV 15H,#0              ;i CRC L
+0317 752000            503             MOV 20H,#0              ;zeruj znaczniki
+031A D2BC              504             SETB PS                 ;ustaw wyzszy priorytet dla RS-232
+031C D2AF              505             SETB EA                 ;wlacz system przerwan
+031E D2A9              506             SETB ET0                ;wlacz przerwania dla T0
+0320 22                507             RET                     ;*** END INITREG ***
+                       508
+                       509             ORG 509H                ;*** STALE ***
+                       510
+                       511                                     ;*** TABLICA PREDKOSCI RS-232 ***
+0509 A000              512     BPS:    DB 0A0H,0H              ;Tryb 0 :   300  BPS, SMOD=0
+0513 3C20456D75        513             DB 0D0H,0H              ;Tryb 1 :   600  BPS, SMOD=0
+     6C61746F72
+     204550524F
+     4D20766572
+     3A20322E37
+     203E20
+                       514             DB 0E8H,0H              ;Tryb 2 :  1200  BPS, SMOD=0
+                       515             DB 0F4H,0H              ;Tryb 3 :  2400  BPS, SMOD=0
+                       516             DB 0FAH,0H              ;Tryb 4 :  4800  BPS, SMOD=0
+                       517             DB 0FDH,0H              ;Tryb 5 :  9600  BPS, SMOD=0
+                       518             DB 0FDH,1H              ;Tryb 6 : 19200  BPS, SMOD=1
+                       519             DB 0FFH,1H              ;Tryb 7 : 57600  BPS, SMOD=1
+                       520
+                       521             DB 13,10
+                       522                                     ;*** LOGO EMULATORA ***
+                       523     STR1:   DB '< Emulator EPROM ver: 2.7 > ',0H
+                       524
+                       525                                     ;*** CREDITS ***
+                       526     STR2:   DB 13,10
+                       527             DB '              < Emulator EPROM ver: 2.7 >'
+                       528             DB 13,10,10
+                       529             DB '              Wszystkie prawa zastrzezone.',13,10
+                       530             DB 'Kopiowanie programu w calosci lub w czesciach zabronione.'
+                       531             DB 13,10,10
+                       532             DB 'Program na ',0E6H,'C 8051 napisal : Tomasz Nowakowski'
+                       533             DB 13,10,10
+                       534             DB 'Specjalne dzieki dla:',13,10
+                       535             DB 'nauczycieli  - za wsparcie, rady i dostep do pracowni',13,10
+                       536             DB 'Klosa        - za symulator EPROM',13,10
+                       537             DB 'Mentosa      - za programowanie kostek EPROM, 89C51 i literature',13,10
+                       538             DB 'Tasaka       - za drugi symulator i literature',13,10
+                       539             DB 'Doti         - za cierpliwosc',13,10
+                       540             DB 0H
+                       541
+                       542                                     ;*** VERSION ***
+                       543     VER:    DB 02H,07H
+                       544
+                       545             END                     ;*** KONIEC LISTINGU PROGRAMU ***
+ASSEMBLY COMPLETE, NO ERRORS FOUND, 1 WARNING
+
+
+ERROR SUMMARY:
+Line 16, WARNING: No instruction found at address 0x00. Consider usage of appropriate ORG directive to clarify correct code placement.
+
+SYMBOL TABLE:
+??MCU_8051_IDE . . . . . . . . . . .  N  NUMB  8051H  NOT USED
+??VERSION. . . . . . . . . . . . . .  N  NUMB  013BH  NOT USED
+AC . . . . . . . . . . . . . . . . .  B  ADDR  00D6H  NOT USED
+ACC. . . . . . . . . . . . . . . . .  D  ADDR  00E0H
+ACSR . . . . . . . . . . . . . . . .  D  ADDR  0097H  NOT USED
+ADCF . . . . . . . . . . . . . . . .  D  ADDR  00F6H  NOT USED
+ADCLK. . . . . . . . . . . . . . . .  D  ADDR  00F2H  NOT USED
+ADCON. . . . . . . . . . . . . . . .  D  ADDR  00F3H  NOT USED
+ADDH . . . . . . . . . . . . . . . .  D  ADDR  00F5H  NOT USED
+ADDL . . . . . . . . . . . . . . . .  D  ADDR  00F4H  NOT USED
+AUXR . . . . . . . . . . . . . . . .  D  ADDR  008EH  NOT USED
+AUXR1. . . . . . . . . . . . . . . .  D  ADDR  00A2H  NOT USED
+B. . . . . . . . . . . . . . . . . .  D  ADDR  00F0H
+BDRCON . . . . . . . . . . . . . . .  D  ADDR  009BH  NOT USED
+BDRCON_1 . . . . . . . . . . . . . .  D  ADDR  009CH  NOT USED
+BPS. . . . . . . . . . . . . . . . .  C  ADDR  0509H
+BRL. . . . . . . . . . . . . . . . .  D  ADDR  009AH  NOT USED
+CCAP0H . . . . . . . . . . . . . . .  D  ADDR  00FAH  NOT USED
+CCAP0L . . . . . . . . . . . . . . .  D  ADDR  00EAH  NOT USED
+CCAP1H . . . . . . . . . . . . . . .  D  ADDR  00FBH  NOT USED
+CCAP1L . . . . . . . . . . . . . . .  D  ADDR  00EBH  NOT USED
+CCAP2H . . . . . . . . . . . . . . .  D  ADDR  00FCH  NOT USED
+CCAP3H . . . . . . . . . . . . . . .  D  ADDR  00FDH  NOT USED
+CCAP4H . . . . . . . . . . . . . . .  D  ADDR  00FEH  NOT USED
+CCAPL2H. . . . . . . . . . . . . . .  D  ADDR  00FCH  NOT USED
+CCAPL2L. . . . . . . . . . . . . . .  D  ADDR  00ECH  NOT USED
+CCAPL3H. . . . . . . . . . . . . . .  D  ADDR  00FDH  NOT USED
+CCAPL3L. . . . . . . . . . . . . . .  D  ADDR  00EDH  NOT USED
+CCAPL4H. . . . . . . . . . . . . . .  D  ADDR  00FEH  NOT USED
+CCAPL4L. . . . . . . . . . . . . . .  D  ADDR  00EEH  NOT USED
+CCAPM0 . . . . . . . . . . . . . . .  D  ADDR  00DAH  NOT USED
+CCAPM1 . . . . . . . . . . . . . . .  D  ADDR  00DBH  NOT USED
+CCAPM2 . . . . . . . . . . . . . . .  D  ADDR  00DCH  NOT USED
+CCAPM3 . . . . . . . . . . . . . . .  D  ADDR  00DDH  NOT USED
+CCAPM4 . . . . . . . . . . . . . . .  D  ADDR  00DEH  NOT USED
+CCF0 . . . . . . . . . . . . . . . .  B  ADDR  00D8H  NOT USED
+CCF1 . . . . . . . . . . . . . . . .  B  ADDR  00D9H  NOT USED
+CCF2 . . . . . . . . . . . . . . . .  B  ADDR  00DAH  NOT USED
+CCF3 . . . . . . . . . . . . . . . .  B  ADDR  00DBH  NOT USED
+CCF4 . . . . . . . . . . . . . . . .  B  ADDR  00DCH  NOT USED
+CCON . . . . . . . . . . . . . . . .  D  ADDR  00D8H  NOT USED
+CFINT. . . . . . . . . . . . . . . .  C  ADDR  0033H  NOT USED
+CH . . . . . . . . . . . . . . . . .  D  ADDR  00F9H  NOT USED
+CHECK. . . . . . . . . . . . . . . .  C  ADDR  00C8H
+CHECKMEM . . . . . . . . . . . . . .  C  ADDR  02DCH
+CKCON. . . . . . . . . . . . . . . .  D  ADDR  008FH  NOT USED
+CKCON0 . . . . . . . . . . . . . . .  D  ADDR  008FH  NOT USED
+CKRL . . . . . . . . . . . . . . . .  D  ADDR  0097H  NOT USED
+CKSEL. . . . . . . . . . . . . . . .  D  ADDR  0085H  NOT USED
+CL . . . . . . . . . . . . . . . . .  D  ADDR  00E9H  NOT USED
+CLKREG . . . . . . . . . . . . . . .  D  ADDR  008FH  NOT USED
+CMOD . . . . . . . . . . . . . . . .  D  ADDR  00D9H  NOT USED
+CPRL2. . . . . . . . . . . . . . . .  B  ADDR  00C8H  NOT USED
+CR . . . . . . . . . . . . . . . . .  B  ADDR  00DEH  NOT USED
+CT2. . . . . . . . . . . . . . . . .  B  ADDR  00C9H  NOT USED
+CY . . . . . . . . . . . . . . . . .  B  ADDR  00D7H  NOT USED
+DECODE . . . . . . . . . . . . . . .  C  ADDR  0164H
+DELAY. . . . . . . . . . . . . . . .  C  ADDR  02AEH
+DP0H . . . . . . . . . . . . . . . .  D  ADDR  0083H  NOT USED
+DP0L . . . . . . . . . . . . . . . .  D  ADDR  0082H  NOT USED
+DP1H . . . . . . . . . . . . . . . .  D  ADDR  0085H  NOT USED
+DP1L . . . . . . . . . . . . . . . .  D  ADDR  0084H  NOT USED
+DPH. . . . . . . . . . . . . . . . .  D  ADDR  0083H
+DPL. . . . . . . . . . . . . . . . .  D  ADDR  0082H
+EA . . . . . . . . . . . . . . . . .  B  ADDR  00AFH
+EC . . . . . . . . . . . . . . . . .  B  ADDR  00AEH  NOT USED
+EECON. . . . . . . . . . . . . . . .  D  ADDR  0096H  NOT USED
+ENDCRC1. . . . . . . . . . . . . . .  C  ADDR  0039H
+ENDCRC2. . . . . . . . . . . . . . .  C  ADDR  0052H
+END_DECODE . . . . . . . . . . . . .  C  ADDR  024EH
+END_MODE . . . . . . . . . . . . . .  C  ADDR  01EAH
+END_SET. . . . . . . . . . . . . . .  C  ADDR  0277H
+EOI. . . . . . . . . . . . . . . . .  C  ADDR  008BH
+EORI . . . . . . . . . . . . . . . .  C  ADDR  0083H
+EOTI . . . . . . . . . . . . . . . .  C  ADDR  0089H
+ES . . . . . . . . . . . . . . . . .  B  ADDR  00ACH
+ET0. . . . . . . . . . . . . . . . .  B  ADDR  00A9H
+ET1. . . . . . . . . . . . . . . . .  B  ADDR  00ABH  NOT USED
+ET2. . . . . . . . . . . . . . . . .  B  ADDR  00ADH  NOT USED
+EX0. . . . . . . . . . . . . . . . .  B  ADDR  00A8H  NOT USED
+EX1. . . . . . . . . . . . . . . . .  B  ADDR  00AAH  NOT USED
+EXEN2. . . . . . . . . . . . . . . .  B  ADDR  00CBH  NOT USED
+EXF2 . . . . . . . . . . . . . . . .  B  ADDR  00CEH  NOT USED
+EXTI0. . . . . . . . . . . . . . . .  C  ADDR  0003H  NOT USED
+EXTI1. . . . . . . . . . . . . . . .  C  ADDR  0013H  NOT USED
+F0 . . . . . . . . . . . . . . . . .  B  ADDR  00D5H  NOT USED
+FAILMEM. . . . . . . . . . . . . . .  C  ADDR  02EEH
+FE . . . . . . . . . . . . . . . . .  B  ADDR  009FH  NOT USED
+FILLMEM. . . . . . . . . . . . . . .  C  ADDR  02CDH
+GATE . . . . . . . . . . . . . . . .  B  ADDR  00B3H
+IE . . . . . . . . . . . . . . . . .  D  ADDR  00A8H  NOT USED
+IE0. . . . . . . . . . . . . . . . .  B  ADDR  0089H  NOT USED
+IE1. . . . . . . . . . . . . . . . .  B  ADDR  008BH  NOT USED
+INIT . . . . . . . . . . . . . . . .  C  ADDR  0098H
+INITREG. . . . . . . . . . . . . . .  C  ADDR  0306H
+INT0 . . . . . . . . . . . . . . . .  B  ADDR  00B2H  NOT USED
+INT1 . . . . . . . . . . . . . . . .  B  ADDR  00B3H  NOT USED
+IP . . . . . . . . . . . . . . . . .  D  ADDR  00B8H  NOT USED
+IPH. . . . . . . . . . . . . . . . .  D  ADDR  00B7H  NOT USED
+IPH0 . . . . . . . . . . . . . . . .  D  ADDR  00B7H  NOT USED
+IPH1 . . . . . . . . . . . . . . . .  D  ADDR  00B3H  NOT USED
+IPL0 . . . . . . . . . . . . . . . .  D  ADDR  00B8H  NOT USED
+IPL1 . . . . . . . . . . . . . . . .  D  ADDR  00B2H  NOT USED
+IT0. . . . . . . . . . . . . . . . .  B  ADDR  0088H  NOT USED
+IT1. . . . . . . . . . . . . . . . .  B  ADDR  008AH  NOT USED
+KBE. . . . . . . . . . . . . . . . .  D  ADDR  009DH  NOT USED
+KBF. . . . . . . . . . . . . . . . .  D  ADDR  009EH  NOT USED
+KBLS . . . . . . . . . . . . . . . .  D  ADDR  009CH  NOT USED
+LED. . . . . . . . . . . . . . . . .  B  ADDR  00B2H
+LOADMEM. . . . . . . . . . . . . . .  C  ADDR  00D8H
+LOADREG. . . . . . . . . . . . . . .  C  ADDR  012CH
+LOOP1. . . . . . . . . . . . . . . .  C  ADDR  02F5H
+LOOP2. . . . . . . . . . . . . . . .  C  ADDR  02F7H
+LREG0. . . . . . . . . . . . . . . .  C  ADDR  0135H
+LREG1. . . . . . . . . . . . . . . .  C  ADDR  013CH
+MAIN . . . . . . . . . . . . . . . .  C  ADDR  00ABH
+MEMTEST. . . . . . . . . . . . . . .  C  ADDR  02B7H
+MODE0. . . . . . . . . . . . . . . .  C  ADDR  01E7H
+MODE1. . . . . . . . . . . . . . . .  C  ADDR  01E2H  NOT USED
+NOEXIT . . . . . . . . . . . . . . .  C  ADDR  02F3H
+NOIDLE . . . . . . . . . . . . . . .  C  ADDR  00C0H
+OKMEM. . . . . . . . . . . . . . . .  C  ADDR  0303H
+OSCCON . . . . . . . . . . . . . . .  D  ADDR  0086H  NOT USED
+OV . . . . . . . . . . . . . . . . .  B  ADDR  00D2H  NOT USED
+P. . . . . . . . . . . . . . . . . .  B  ADDR  00D0H  NOT USED
+P0 . . . . . . . . . . . . . . . . .  D  ADDR  0080H  NOT USED
+P1 . . . . . . . . . . . . . . . . .  D  ADDR  0090H
+P1M1 . . . . . . . . . . . . . . . .  D  ADDR  00D4H  NOT USED
+P1M2 . . . . . . . . . . . . . . . .  D  ADDR  00E2H  NOT USED
+P2 . . . . . . . . . . . . . . . . .  D  ADDR  00A0H  NOT USED
+P3 . . . . . . . . . . . . . . . . .  D  ADDR  00B0H  NOT USED
+P3M1 . . . . . . . . . . . . . . . .  D  ADDR  00D5H  NOT USED
+P3M2 . . . . . . . . . . . . . . . .  D  ADDR  00E3H  NOT USED
+P4 . . . . . . . . . . . . . . . . .  D  ADDR  00C0H  NOT USED
+P4M1 . . . . . . . . . . . . . . . .  D  ADDR  00D6H  NOT USED
+P4M2 . . . . . . . . . . . . . . . .  D  ADDR  00E4H  NOT USED
+P5 . . . . . . . . . . . . . . . . .  D  ADDR  00E8H  NOT USED
+PC . . . . . . . . . . . . . . . . .  B  ADDR  00BEH  NOT USED
+PCON . . . . . . . . . . . . . . . .  D  ADDR  0087H  NOT USED
+PPCL . . . . . . . . . . . . . . . .  B  ADDR  00BEH  NOT USED
+PS . . . . . . . . . . . . . . . . .  B  ADDR  00BCH
+PSL. . . . . . . . . . . . . . . . .  B  ADDR  00BCH  NOT USED
+PSW. . . . . . . . . . . . . . . . .  D  ADDR  00D0H
+PT0. . . . . . . . . . . . . . . . .  B  ADDR  00B9H  NOT USED
+PT0L . . . . . . . . . . . . . . . .  B  ADDR  00B9H  NOT USED
+PT1. . . . . . . . . . . . . . . . .  B  ADDR  00BBH  NOT USED
+PT1L . . . . . . . . . . . . . . . .  B  ADDR  00BBH  NOT USED
+PT2. . . . . . . . . . . . . . . . .  B  ADDR  00BDH  NOT USED
+PT2L . . . . . . . . . . . . . . . .  B  ADDR  00BDH  NOT USED
+PX0. . . . . . . . . . . . . . . . .  B  ADDR  00B8H  NOT USED
+PX0L . . . . . . . . . . . . . . . .  B  ADDR  00B8H  NOT USED
+PX1. . . . . . . . . . . . . . . . .  B  ADDR  00BAH  NOT USED
+PX1L . . . . . . . . . . . . . . . .  B  ADDR  00BAH  NOT USED
+R01. . . . . . . . . . . . . . . . .  C  ADDR  0065H
+R02. . . . . . . . . . . . . . . . .  C  ADDR  0070H
+R03. . . . . . . . . . . . . . . . .  C  ADDR  007BH
+RB8. . . . . . . . . . . . . . . . .  B  ADDR  009AH  NOT USED
+RCAP2H . . . . . . . . . . . . . . .  D  ADDR  00CBH  NOT USED
+RCAP2L . . . . . . . . . . . . . . .  D  ADDR  00CAH  NOT USED
+RCLK . . . . . . . . . . . . . . . .  B  ADDR  00CDH  NOT USED
+RD . . . . . . . . . . . . . . . . .  B  ADDR  00B7H  NOT USED
+READY. . . . . . . . . . . . . . . .  C  ADDR  0280H
+REG. . . . . . . . . . . . . . . . .  C  ADDR  00D0H
+REN. . . . . . . . . . . . . . . . .  B  ADDR  009CH
+REP. . . . . . . . . . . . . . . . .  C  ADDR  029DH
+RESET. . . . . . . . . . . . . . . .  C  ADDR  0000H  NOT USED
+RI . . . . . . . . . . . . . . . . .  B  ADDR  0098H
+RS0. . . . . . . . . . . . . . . . .  B  ADDR  00D3H
+RS1. . . . . . . . . . . . . . . . .  B  ADDR  00D4H
+RX . . . . . . . . . . . . . . . . .  C  ADDR  0046H
+RXD. . . . . . . . . . . . . . . . .  B  ADDR  00B0H  NOT USED
+SADDR. . . . . . . . . . . . . . . .  D  ADDR  00A9H  NOT USED
+SADDR_0. . . . . . . . . . . . . . .  D  ADDR  00A9H  NOT USED
+SADDR_1. . . . . . . . . . . . . . .  D  ADDR  00AAH  NOT USED
+SADEN. . . . . . . . . . . . . . . .  D  ADDR  00B9H  NOT USED
+SADEN_0. . . . . . . . . . . . . . .  D  ADDR  00B9H  NOT USED
+SADEN_1. . . . . . . . . . . . . . .  D  ADDR  00BAH  NOT USED
+SBUF . . . . . . . . . . . . . . . .  D  ADDR  0099H
+SCON . . . . . . . . . . . . . . . .  D  ADDR  0098H
+SEL0 . . . . . . . . . . . . . . . .  B  ADDR  00B4H
+SEL1 . . . . . . . . . . . . . . . .  B  ADDR  00B5H
+SENDCRC. . . . . . . . . . . . . . .  C  ADDR  0103H
+SENDMEM. . . . . . . . . . . . . . .  C  ADDR  00ECH
+SENDREG. . . . . . . . . . . . . . .  C  ADDR  0147H
+SENDSTR. . . . . . . . . . . . . . .  C  ADDR  029BH
+SETMODE. . . . . . . . . . . . . . .  C  ADDR  0251H
+SINT . . . . . . . . . . . . . . . .  C  ADDR  0023H  NOT USED
+SM0. . . . . . . . . . . . . . . . .  B  ADDR  009FH  NOT USED
+SM1. . . . . . . . . . . . . . . . .  B  ADDR  009EH  NOT USED
+SM2. . . . . . . . . . . . . . . . .  B  ADDR  009DH  NOT USED
+SMOD0. . . . . . . . . . . . . . . .  C  ADDR  0274H
+SMOD1. . . . . . . . . . . . . . . .  C  ADDR  026FH  NOT USED
+SP . . . . . . . . . . . . . . . . .  D  ADDR  0081H
+SPCON. . . . . . . . . . . . . . . .  D  ADDR  00C3H  NOT USED
+SPCR . . . . . . . . . . . . . . . .  D  ADDR  00D5H  NOT USED
+SPDAT. . . . . . . . . . . . . . . .  D  ADDR  00C5H  NOT USED
+SPDR . . . . . . . . . . . . . . . .  D  ADDR  0086H  NOT USED
+SPSR . . . . . . . . . . . . . . . .  D  ADDR  00AAH  NOT USED
+SPSTA. . . . . . . . . . . . . . . .  D  ADDR  00C4H  NOT USED
+SREG0. . . . . . . . . . . . . . . .  C  ADDR  0152H
+SREG1. . . . . . . . . . . . . . . .  C  ADDR  0154H
+STR1 . . . . . . . . . . . . . . . .  C  ADDR  051BH
+STR2 . . . . . . . . . . . . . . . .  C  ADDR  0538H
+T0 . . . . . . . . . . . . . . . . .  B  ADDR  00B4H  NOT USED
+T01. . . . . . . . . . . . . . . . .  C  ADDR  0041H
+T1 . . . . . . . . . . . . . . . . .  B  ADDR  00B5H  NOT USED
+T2CON. . . . . . . . . . . . . . . .  D  ADDR  00C8H  NOT USED
+T2MOD. . . . . . . . . . . . . . . .  D  ADDR  00C9H  NOT USED
+TB8. . . . . . . . . . . . . . . . .  B  ADDR  009BH  NOT USED
+TCLK . . . . . . . . . . . . . . . .  B  ADDR  00CCH  NOT USED
+TCON . . . . . . . . . . . . . . . .  D  ADDR  0088H  NOT USED
+TF0. . . . . . . . . . . . . . . . .  B  ADDR  008DH  NOT USED
+TF1. . . . . . . . . . . . . . . . .  B  ADDR  008FH  NOT USED
+TF2. . . . . . . . . . . . . . . . .  B  ADDR  00CFH  NOT USED
+TH0. . . . . . . . . . . . . . . . .  D  ADDR  008CH
+TH1. . . . . . . . . . . . . . . . .  D  ADDR  008DH
+TH2. . . . . . . . . . . . . . . . .  D  ADDR  00CDH  NOT USED
+TI . . . . . . . . . . . . . . . . .  B  ADDR  0099H
+TIMER0 . . . . . . . . . . . . . . .  C  ADDR  000BH  NOT USED
+TIMER1 . . . . . . . . . . . . . . .  C  ADDR  001BH  NOT USED
+TIMER2 . . . . . . . . . . . . . . .  C  ADDR  002BH  NOT USED
+TL0. . . . . . . . . . . . . . . . .  D  ADDR  008AH
+TL1. . . . . . . . . . . . . . . . .  D  ADDR  008BH  NOT USED
+TL2. . . . . . . . . . . . . . . . .  D  ADDR  00CCH  NOT USED
+TMOD . . . . . . . . . . . . . . . .  D  ADDR  0089H
+TR0. . . . . . . . . . . . . . . . .  B  ADDR  008CH
+TR1. . . . . . . . . . . . . . . . .  B  ADDR  008EH
+TR2. . . . . . . . . . . . . . . . .  B  ADDR  00CAH  NOT USED
+TX . . . . . . . . . . . . . . . . .  C  ADDR  002FH
+TXD. . . . . . . . . . . . . . . . .  B  ADDR  00B1H  NOT USED
+VER. . . . . . . . . . . . . . . . .  C  ADDR  0702H
+WDTCON . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
+WDTPRG . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
+WDTRST . . . . . . . . . . . . . . .  D  ADDR  00A6H  NOT USED
+WR . . . . . . . . . . . . . . . . .  B  ADDR  00B6H  NOT USED
+_00. . . . . . . . . . . . . . . . .  C  ADDR  0166H  NOT USED
+_01. . . . . . . . . . . . . . . . .  C  ADDR  016AH
+_01_40 . . . . . . . . . . . . . . .  C  ADDR  0171H
+_41. . . . . . . . . . . . . . . . .  C  ADDR  0185H
+_41_80 . . . . . . . . . . . . . . .  C  ADDR  018CH
+_A0. . . . . . . . . . . . . . . . .  C  ADDR  019EH
+_B0. . . . . . . . . . . . . . . . .  C  ADDR  01A9H
+_BB. . . . . . . . . . . . . . . . .  C  ADDR  01B4H
+_C0. . . . . . . . . . . . . . . . .  C  ADDR  01BFH
+_CC. . . . . . . . . . . . . . . . .  C  ADDR  01CCH
+_D0. . . . . . . . . . . . . . . . .  C  ADDR  01F6H
+_DD. . . . . . . . . . . . . . . . .  C  ADDR  0202H
+_E0. . . . . . . . . . . . . . . . .  C  ADDR  0210H
+_F0. . . . . . . . . . . . . . . . .  C  ADDR  021BH
+_F1. . . . . . . . . . . . . . . . .  C  ADDR  0228H
+_FF. . . . . . . . . . . . . . . . .  C  ADDR  023EH
+_NIE20 . . . . . . . . . . . . . . .  C  ADDR  016FH
+_NIE80 . . . . . . . . . . . . . . .  C  ADDR  018AH

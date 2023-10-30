@@ -1,0 +1,61 @@
+     1  0000: 02 00 22  	LJMP START
+     2                  
+     3  000B:           	ORG 000Bh
+     4  000B: C0 D0     	PUSH PSW
+     5  000D: C0 E0     	PUSH ACC
+     6  000F: 75 8C FF  	MOV TH0,#0FFH
+     7  0012: 75 8A 10  	MOV TL0,#010H
+     8  0015: C2 00     	CLR 0
+     9  0017: DA 04     	DJNZ R2,SILENT
+    10  0019: AA F0     	MOV R2,B
+    11  001B: D2 00     	SETB 0
+    12  001D:           SILENT:
+    13  001D: D0 E0     	POP ACC
+    14  001F: D0 D0     	POP PSW
+    15  0021: 32        	RETI
+    16                  
+    17  0022:           START:
+    18  0022: 75 89 11  	MOV TMOD,#00010001B
+    19  0025: D2 AF     	SETB EA
+    20  0027: D2 A9     	SETB ET0
+    21  0029: 75 81 17  	MOV SP,#17H
+    22  002C: 7F FF     	MOV R7,#0FFH		;DELAY
+    23  002E: 7E 80     	MOV R6,#080H		;DELAY
+    24  0030: 78 10     	MOV R0,#00010000B	;WARTOSC PRZESUWANA
+    25  0032: 79 06     	MOV R1,#6		;ILOSC CYKLI
+    26  0034: 75 F0 02  	MOV B,#2H		;ton
+    27  0037: D2 8C     	SETB TR0
+    28                  
+    29  0039:           LEFT:
+    30  0039: 12 00 57  	LCALL SHOW
+    31  003C: 12 00 5C  	LCALL DELAY
+    32  003F: E8        	MOV A,R0
+    33  0040: 33        	RLC A
+    34  0041: F8        	MOV R0,A
+    35  0042: 80 F5     	SJMP LEFT
+    36  0044: D9 F3     	DJNZ R1,LEFT
+    37  0046: 79 10     	MOV R1,#16
+    38  0048:           RIGHT:
+    39  0048: 12 00 57  	LCALL SHOW
+    40  004B: 12 00 5C  	LCALL DELAY
+    41  004E: E8        	MOV A,R0
+    42  004F: 13        	RRC A
+    43  0050: F8        	MOV R0,A
+    44  0051: D9 F5     	DJNZ R1,RIGHT
+    45  0053: 79 10     	MOV R1,#16
+    46  0055: 80 E2     	SJMP LEFT
+    47                  
+    48                  
+    49  0057:           SHOW:
+    50  0057: E8        	MOV A,R0
+    51  0058: F4        	CPL A
+    52  0059: F5 90     	MOV P1,A
+    53  005B: 22        	RET
+    54                  
+    55  005C:           DELAY:
+    56  005C: 00        	NOP
+    57  005D: DF FD     	DJNZ R7,DELAY
+    58  005F: 7F FF     	MOV R7,#0FFH
+    59  0061: DE F9     	DJNZ R6,DELAY
+    60  0063: 7E 80     	MOV R6,#080H
+    61  0065: 22        	RET

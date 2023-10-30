@@ -1,0 +1,183 @@
+;-------------------------------------------------------------------------------
+; Kazda etykieta zastepuje adres, ktory jest jej przypisany. Wszelkie odwolania
+; w programie do adresu opatrzonego etykieta beda zamienione na odwolania do
+; danej etykiety.
+;
+; Format linii definiujacej etykiete:
+; <X>	<adres>	<etykieta>
+; 
+; <X>		- Moze byc: 
+;	  		   C - oznacza etykiety adresowe
+;			   D - oznacza etykiety danych
+;		  	   B - oznacza etykiety bitow
+;
+; <adres>	- Oznacza adres etykiety. Dla etykiet adresowych pole adres
+;		  jest 16 bitowa liczba zapisana w kodzie hexadecymalnym. Dla
+;		  pozostalych typow etykiet pole to jest 8 bitowe. Przy
+;		  powtarzaniu sie adresow etykiet tych samych typow ladowana
+;		  jest zawsze ostatnia.
+;
+; <etykieta>	- Dowolny ciag znakow nie przerwany spacjami o dlugosci nie
+;		  przekraczajacej 15 znakow w przypadku etykiet adresowych i
+;		  10 znakow dla pozostalych. Wszystkie znaki powyzej tej
+;		  granicy zostana pominiete. Gdy pierwszym (lub jedynym) 
+;		  znakiem etykiety jest '*' to etykieta o danym adresie 
+;		  zostanie usunieta z definicji. W celu zmiany nazwy etykiety
+;		  nie trzeba jej kasowac wystarczy zdefiniowac ja nizej w
+;                 osobnej definicji. 
+;
+; UWAGA !
+; Pomiedzy poszczegolnymi polami musi wystepowac przynajmniej jedna spacja.
+; Natomiast kazda kolejna definicja musi znajdowac sie w osobnej linii.
+;-------------------------------------------------------------------------------
+
+; 1. Definicje etykiet adresowych
+; Mozna zdefiniowac max. 255 etykiet adresowych.
+
+C	0000h	_RESET_		;Poczatek pamieci
+C	0003h	INT_EX0		;Przerwanie zewnetrzne INT0
+C	000Bh	INT_T0		;Przerwanie licznika T0
+C	0013h	INT_EX1		;Przerwanie zewnetrzne INT1
+C	001Bh	INT_T1		;Przerwanie licznika T1
+C	0023h	SERIAL		;Przerwanie ukladu transmisjii szeregowej
+C	002Bh	INT_T2		;Przerwanie licznika T2 (8025)
+
+; 2. Definicje SFR (adres 0h-FFh)
+; Tutaj mozna dopisac lub zmienic nazwy i adresy rejestrow specjalnych.
+
+D	E0h	ACC
+D	F0h	B
+D	D0h	PSW
+D	81h	SP
+D	83h	DPH
+D	82h	DPL
+D	80h	P0
+D	90h	P1
+D	A0h	P2
+D	B0h	P3
+D	B8h	IP
+D	A8h	IE
+D	88h	TCON
+D	89h	TMOD
+D	8Ch	TH0
+D	8Ah	TL0
+D	8Dh	TH1
+D	8Bh	TL1
+
+D	C8h	T2CON
+D	CDh	TH2
+D	CCh	TL2
+D	CBh	RLDH
+D	CAh	RLDL
+D	98h	SCON
+D	99h	SBUF
+D	87h	PCON
+
+; 3. Definicje bitow (adres 0-FFh)
+; Tutaj natomiast zdefiniowane sa adresy bitow. Mozna zmienic zarowno bity
+; specjalne (adresy bitow 80h-FFh) jak i bity znajdujace sie w wewnetrznej
+; pamieci danych (20h-2Fh) adresowalnej bitowo (adresy bitow 00h-7Fh).
+
+B	D0h	P	;PSW
+B	D2h	OV
+B	D3h	RS0
+B	D4h	RS1
+B	D5h	F0
+B	D6h	AC
+B	D7h	CY
+
+B	88h	IT0	;TCON
+B	89h	IE0
+B	8Ah	IT1
+B	8Bh	IE1
+B	8Ch	TR0
+B	8Dh	TF0
+B	8Eh	TR1
+B	8Fh	TF1
+
+B	A8h	EX0	;IE
+B	A9h	ET0
+B	AAh	EX1
+B	ABh	ET1
+B	ACh	ES
+B	ADh	ET2
+B	AFh	EA
+
+B	B8h	PX0	;IP
+B	B9h	PT0
+B	BAh	PX1
+B	BBh	PT1
+B	BCh	PS
+B	BDh	PT2
+
+B	98h	RI	;SCON
+B	99h	TI
+B	9Ah	RB8
+B	9Bh	TB8
+B	9Ch	REN
+B	9Dh	SM2
+B	9Eh	SM1
+B	9Fh	SM0
+
+B	C8h	CP_RL2	;T2CON
+B	C9h	C_T2
+B	CAh	TR2
+B	CBh	EXEN2
+B	CCh	TCLK
+B	CDh	RCLK
+B	CEh	EXF2
+B	CFh	TF2
+
+B	E0h	ACC.0	;ACC
+B	E1h	ACC.1
+B	E2h	ACC.2
+B	E3h	ACC.3
+B	E4h	ACC.4
+B	E5h	ACC.5
+B	E6h	ACC.6
+B	E7h	ACC.7
+
+B	F0h	B.0	;B
+B	F1h	B.1
+B	F2h	B.2
+B	F3h	B.3
+B	F4h	B.4
+B	F5h	B.5
+B	F6h	B.6
+B	F7h	B.7
+
+B	80h	P0.0	;P0
+B	81h	P0.1
+B	82h	P0.2
+B	83h	P0.3
+B	84h	P0.4
+B	85h	P0.5
+B	86h	P0.6
+B	87h	P0.7
+
+B	90h	P1.0	;P1
+B	91h	P1.1
+B	92h	P1.2
+B	93h	P1.3
+B	94h	P1.4
+B	95h	P1.5
+B	96h	P1.6
+B	97h	P1.7
+
+B	A0h	P2.0	;P2
+B	A1h	P2.1
+B	A2h	P2.2
+B	A3h	P2.3
+B	A4h	P2.4
+B	A5h	P2.5
+B	A6h	P2.6
+B	A7h	P2.7
+
+B	B0h	P3.0	;P3
+B	B1h	P3.1
+B	B2h	P3.2
+B	B3h	P3.3
+B	B4h	P3.4
+B	B5h	P3.5
+B	B6h	P3.6
+B	B7h	P3.7

@@ -1,0 +1,179 @@
+^
+ 
+                       ⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+                       ≥OPIS KLAWISZY FUNKCYJNYCH≥
+                       ¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+ 
+ Klawisze edycyjne:
+   Strzaçki    - Przesuwanie kursora w obråbie widoku
+   Enter       - Przejêcie w tryb edycji (z wyjätkiem trybu DeAsemblera),
+                 w okienkach dialogowych potwierdzenie wprowadzonej zmiany
+   Esc         - Anulowanie wykonywanej operacji
+   Tab         - Przejêcie do kolejnego elementu okienka dialogowego
+   Shift+TAB   - Przejêcie do poprzedniego elementu okienka dialogowego
+   PgUp        - Przewiniåcie zawartoêci okna o jeden ekran do gèry
+   PgDown      - Przewiniåcie zawartoêci okna o jeden ekran w dèç
+   Ctrl+PgUp   - Przewiniåcie zawartoêci okna DeAsemblera o 100 linii w gèrå
+                 i o 4 kB w widokach edytorèw
+   Ctrl+PgDown - Przewiniåcie zawartoêci okna DeAsemblera o 100 linii w dèç
+                 i o 4 kB w widokach edytorèw
+   Home        - Ustawienie kursora u gèry ekranu
+   End         - Ustawienie kursora na dole ekranu
+   Ctrl+Home   - Wyêwietlenie zawartoêci okna od poczätku pamiåci
+ 
+ Dziaçania na buforze:
+   Ctrl+R      - Przesué
+   Ctrl+K      - Kopiuj
+   Ctrl+F      - Wypeçnij
+   Ctrl+D      - Wyczyêã zawartoêã bufora
+ 
+ Zmiana widoku (trybu pracy):
+   F5          - DeAsembler 8051
+   F6          - Edytor HEX (16 bajtèw w linii)
+   F7          - Edytor HEX (8 bajtèw w linii)
+   F8          - Edytor bitowy (mapa bitowa)
+ 
+ Operacje na plikach:
+   F2          - Zachowaj
+   Shift+F2    - Zachowaj jako
+   F3          - Otwèrz
+ 
+ Polecenia symulacji:
+   Ctrl+F10    - Uruchom symulacjå
+   Ctrl+F11    - Zatrzymaj symulacjå
+   Ctrl+F12    - Resetuj
+ 
+ Inne polecenia:
+   Ctrl+G      - Idë do
+   F1          - Instrukcja obsçugi programu
+   Shift+F1    - O pamiåciach EPROM
+   Alt+X       - Koniec pracy programu
+ 
+^
+ 
+                           ⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+                           ≥INFORMACJE OGÖLNE≥
+                           ¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+ 
+Pamiåci sçuía do przechowywania informacji zakodowanej w postaci dwèjkowej.
+Pamiåci dzieli siå na pamiåci zapisywalne, ktèrych zapisywanie jest podobnie
+çatwe jak odczytywanie, oraz pamiåci staçe (ROM - ang. Read Only Memory -
+pamiåã tylko do odczytu), ktèrych zapisywanie jest znacznie trudniejsze nií
+odczytywanie.
+Pamiåã skçada siå z komèrek pamiåci sçuíäcych do przechowywania
+poszczegèlnych bitèw zapamiåtanej informacji oraz z ukladèw pomocniczych.
+Komèrki pamiåci rozrèíniane sä za pomocä adresèw.
+@
+Pamiåci dzieli siå na pamiåci o doståpie swobodnym (rèwnolegçe) oraz na
+pamiåci o doståpie sekwencyjnym (szeregowe). Pamiåci o doståpie swobodnym
+zapewniaja taki sam czas doståpu do kaídej komèrki pamiåci, natomiast
+pamiåci szeregowe maja czas doståpu zaleíny od umiejscownienia komèrki
+(adresu) w pamieci.
+@
+Pamiåci typu RAM dzielä siå na statyczne i dynamiczne. W pamiåciach
+statycznych pojedynczy bit pamiåtany jest w przerzutniku, natomiast
+w pamiåciach dynamicznych elementem "pamiåtajacym" jest pojemnoêã
+tranzystora unipolarnego. W zwiäzku z powyíszym pamiåci dynamiczne wymagajä
+ciagçego odêwieíania zawartoêci.
+@
+Pamiåci ROM moíemy podzieliã w zaleínoêci od sposobu zapisu na pamiåci:
+ - ROM    - (ang. Read Only Memory) zapisywane jednorazowo w procesie
+            produkcji,
+ - PROM   - (ang. Programmable ROM) programowalne, zapisywane jednorazowo
+            przez uíytkownika,
+ - EPROM  - (Erasable Programmable ROM) reprogramowalne, kasowane
+            promieniami ultrafioletowymi i programowane elektrycznie,
+ - EEPROM - (Electrically Erasable-Programmable ROM) kasowane i programowane
+            elektrycznie,
+ 
+                         ⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+                         ≥WYPROWADZENIA PAMIÇCI≥
+                         ¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+ 
+ Rozkçad wyprowadzeé pamiåci RAM:
+ 
+            2 Kb
+ A7 --[ 1]---------[24]-- Vcc
+ A6 --[ 2]         [23]-- A8
+ A5 --[ 3]         [22]-- A9
+ A4 --[ 4]         [21]-- WR
+ A3 --[ 5]         [20]-- OE
+ A2 --[ 6]  6116   [19]-- A10
+ A1 --[ 7]         [18]-- CE
+ A0 --[ 8]         [17]-- D7
+ D0 --[ 9]         [16]-- D6
+ D1 --[10]         [15]-- D5
+ D2 --[11]         [14]-- D4
+GND --[12]---------[13]-- D3
+ 
+            8 Kb                              32 Kb
+A14 --[ 1]---------[28]-- Vcc     A14 --[ 1]---------[28]-- Vcc
+A12 --[ 2]         [27]-- WR      A12 --[ 2]         [27]-- WR
+ A7 --[ 3]         [26]-- A13      A7 --[ 3]         [26]-- A13
+ A6 --[ 4]         [25]-- A8       A6 --[ 4]         [25]-- A8
+ A5 --[ 5]         [24]-- A9       A5 --[ 5]         [24]-- A9
+ A4 --[ 6]         [23]-- A11      A4 --[ 6]         [23]-- A11
+ A3 --[ 7]  6264   [22]-- OE       A3 --[ 7]  62256  [22]-- OE
+ A2 --[ 8]         [21]-- A10      A2 --[ 8]         [21]-- A10
+ A1 --[ 9]         [20]-- CE       A1 --[ 9]         [20]-- CE
+ A0 --[10]         [19]-- D7       A0 --[10]         [19]-- D7
+ D0 --[11]         [18]-- D6       D0 --[11]         [18]-- D6
+ D1 --[12]         [17]-- D5       D1 --[12]         [17]-- D5
+ D2 --[13]         [16]-- D4       D2 --[13]         [16]-- D4
+GND --[14]---------[15]-- D3      GND --[14]---------[15]-- D3
+
+  
+ Rozkçad wyprowadzeé pamiåci EPROM:
+ 
+            8 Kb                              16 Kb
+Vpp --[ 1]---------[28]-- Vcc     Vpp --[ 1]---------[28]-- Vcc
+A12 --[ 2]         [27]-- PGM     A12 --[ 2]         [27]-- PGM
+ A7 --[ 3]         [26]-- NC       A7 --[ 3]         [26]-- A13
+ A6 --[ 4]         [25]-- A8       A6 --[ 4]         [25]-- A8
+ A5 --[ 5]         [24]-- A9       A5 --[ 5]         [24]-- A9
+ A4 --[ 6]         [23]-- A11      A4 --[ 6]         [23]-- A11
+ A3 --[ 7]  2764   [22]-- OE       A3 --[ 7]  27128  [22]-- OE
+ A2 --[ 8]         [21]-- A10      A2 --[ 8]         [21]-- A10
+ A1 --[ 9]         [20]-- CE       A1 --[ 9]         [20]-- CE
+ A0 --[10]         [19]-- D7       A0 --[10]         [19]-- D7
+ D0 --[11]         [18]-- D6       D0 --[11]         [18]-- D6
+ D1 --[12]         [17]-- D5       D1 --[12]         [17]-- D5
+ D2 --[13]         [16]-- D4       D2 --[13]         [16]-- D4
+GND --[14]---------[15]-- D3      GND --[14]---------[15]-- D3
+ 
+            32 Kb                              64 Kb
+Vpp --[ 1]---------[28]-- Vcc     A15 --[ 1]---------[28]-- Vcc
+A12 --[ 2]         [27]-- A14     A12 --[ 2]         [27]-- A14
+ A7 --[ 3]         [26]-- A13      A7 --[ 3]         [26]-- A13
+ A6 --[ 4]         [25]-- A8       A6 --[ 4]         [25]-- A8
+ A5 --[ 5]         [24]-- A9       A5 --[ 5]         [24]-- A9
+ A4 --[ 6]         [23]-- A11      A4 --[ 6]         [23]-- A11
+ A3 --[ 7]  27256  [22]-- OE       A3 --[ 7]  27512  [22]-- OE
+ A2 --[ 8]         [21]-- A10      A2 --[ 8]         [21]-- A10
+ A1 --[ 9]         [20]-- CE       A1 --[ 9]         [20]-- CE
+ A0 --[10]         [19]-- D7       A0 --[10]         [19]-- D7
+ D0 --[11]         [18]-- D6       D0 --[11]         [18]-- D6
+ D1 --[12]         [17]-- D5       D1 --[12]         [17]-- D5
+ D2 --[13]         [16]-- D4       D2 --[13]         [16]-- D4
+GND --[14]---------[15]-- D3      GND --[14]---------[15]-- D3
+ 
+ 
+ Rozkçad wyprowadzeé pamiåci EEPROM:
+ 
+            8 Kb                              32 Kb
+A14 --[ 1]---------[28]-- Vcc     A14 --[ 1]---------[28]-- Vcc
+A12 --[ 2]         [27]-- WR      A12 --[ 2]         [27]-- WR
+ A7 --[ 3]         [26]-- A13      A7 --[ 3]         [26]-- A13
+ A6 --[ 4]         [25]-- A8       A6 --[ 4]         [25]-- A8
+ A5 --[ 5]         [24]-- A9       A5 --[ 5]         [24]-- A9
+ A4 --[ 6]         [23]-- A11      A4 --[ 6]         [23]-- A11
+ A3 --[ 7]  2864   [22]-- OE       A3 --[ 7]  28256  [22]-- OE
+ A2 --[ 8]         [21]-- A10      A2 --[ 8]         [21]-- A10
+ A1 --[ 9]         [20]-- CE       A1 --[ 9]         [20]-- CE
+ A0 --[10]         [19]-- D7       A0 --[10]         [19]-- D7
+ D0 --[11]         [18]-- D6       D0 --[11]         [18]-- D6
+ D1 --[12]         [17]-- D5       D1 --[12]         [17]-- D5
+ D2 --[13]         [16]-- D4       D2 --[13]         [16]-- D4
+GND --[14]---------[15]-- D3      GND --[14]---------[15]-- D3
+ 
+ 

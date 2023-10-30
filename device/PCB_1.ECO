@@ -1,0 +1,91 @@
+*PROTEL-ECO*
+
+*REMARK* 11-Feb-2001 13:21:22
+
+*REMARK* 11-Feb-2001 13:21:22
+*REMARK* .......................................................................
+*REMARK* file opened: C:\TOOLS\EEPROM.SRC\PCB\EE89.PCB
+
+*REMARK* 11-Feb-2001 13:21:31
+*REMARK* .......................................................................
+*REMARK* file opened: C:\TOOLS\EEPROM.SRC\PCB\EE89_2.PCB
+
+*REMARK* 11-Feb-2001 13:21:44
+*REMARK* .......................................................................
+*REMARK* file opened: C:\TOOLS\EEPROM.SRC\PCB\FRONT.PCB
+
+*REMARK* 11-Feb-2001 13:21:46
+*REMARK* file closed but NOT saved!!!
+*REMARK* .......................................................................
+
+*REMARK* 11-Feb-2001 13:21:49
+*REMARK* file closed but NOT saved!!!
+*REMARK* .......................................................................
+
+*REMARK* 11-Feb-2001 13:23:28
+*DELPART*
+MAX1 DIP20
+
+*REMARK* 11-Feb-2001 13:23:52
+*DELPART*
+74HCT245 DIP20
+
+*REMARK* 11-Feb-2001 13:23:58
+*DELPART*
+74HCT245 DIP20
+
+*REMARK* 11-Feb-2001 13:25:19
+*DELPART*
+74HCT245 DIP20
+
+*REMARK* 11-Feb-2001 13:25:37
+*DELPART*
+74HCT245 DIP20
+
+*REMARK* 11-Feb-2001 13:26:16
+*DELPART*
+MAX3 DIP20
+
+*REMARK* 11-Feb-2001 13:26:36
+*DELPART*
+MAX3 DIP20
+
+*REMARK* 11-Feb-2001 13:26:59
+*DELPART*
+74573 DIP20
+
+*REMARK* 11-Feb-2001 13:28:17
+*DELPART*
+X3 XTAL1
+
+*REMARK* 11-Feb-2001 13:28:22
+*DELPART*
+X2 XTAL1
+
+*REMARK* 11-Feb-2001 13:30:14
+*DELPART*
+74HCT245 DIP20
+
+*REMARK* 11-Feb-2001 13:30:46
+*DELPART*
+MAX3 DIP20
+
+*REMARK* 11-Feb-2001 13:41:23
+*REMARK* .......................................................................
+*REMARK* file opened: C:\TOOLS\EEPROM.SRC\PCB\EE89_2.PCB
+
+*REMARK* 11-Feb-2001 13:45:10
+*DELPART*
+5 XTAL1
+
+*REMARK* 11-Feb-2001 13:45:17
+*DELPART*
+4 XTAL1
+
+*REMARK* 11-Feb-2001 13:45:26
+*DELPART*
+1 XTAL1
+
+*REMARK* 11-Feb-2001 13:47:43
+*REMARK* file closed but NOT saved!!!
+*REMARK* .......................................................................

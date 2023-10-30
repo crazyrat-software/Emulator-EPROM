@@ -1,0 +1,38 @@
+     1  0000: 02 00 03  	LJMP START
+     2                  
+     3  0003:           START:
+     4  0003: 75 81 1F  	MOV SP,#1FH
+     5  0006: 7F FF     	MOV R7,#0FFH
+     6  0008: 7E FF     	MOV R6,#0FFH
+     7  000A: 78 01     	MOV R0,#1
+     8  000C: 79 FF     	MOV R1,#0FFH
+     9  000E: 12 00 30  	LCALL DELAY
+    10  0011: C2 B2     	CLR P3.2
+    11  0013:           LEFT:
+    12  0013: 20 B3 10  	JB P3.3,NOKEY
+    13  0016: 12 00 30  	LCALL DELAY
+    14  0019: B2 B0     	CPL P3.0
+    15  001B: A8 B0     	MOV R0,P3
+    16  001D: D2 B2     	SETB P3.2
+    17  001F: 12 00 30  	LCALL DELAY
+    18  0022: C2 B2     	CLR P3.2
+    19  0024: B2 90     	CPL P1.0
+    20  0026:           NOKEY:
+    21  0026: 12 00 2B  	LCALL SHOW
+    22                  ;	LCALL DELAY
+    23  0029: 80 E8     	SJMP LEFT
+    24                  
+    25                  
+    26  002B:           SHOW:
+    27  002B: E8        	MOV A,R0
+    28  002C: F4        	CPL A
+    29  002D: F5 90     	MOV P1,A
+    30  002F: 22        	RET
+    31                  
+    32  0030:           DELAY:
+    33  0030: 00        	NOP
+    34  0031: DF FD     	DJNZ R7,DELAY
+    35  0033: 7F FF     	MOV R7,#0FFH
+    36  0035: DE F9     	DJNZ R6,DELAY
+    37  0037: 7E 80     	MOV R6,#080H
+    38  0039: 22        	RET

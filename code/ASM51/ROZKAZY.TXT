@@ -1,0 +1,44 @@
+	Lista rozkazow wykonywanych przez EEPROM (ver: 2.4)
+--------------------------------------------------------------------------------
+   KOD 	|    2 BAJT	|    3 BAJT	|                 OPIS
+--------------------------------------------------------------------------------
+01-40h	|    ADRES H	|    ADRES L	| Zapis 1-64 bajtow pod adres
+					| HL (wymusza dostep do pamieci RAM)
+--------------------------------------------------------------------------------
+41-80h	|    ADRES H	|    ADRES L	| Odczyt 1-64 bajtow z pod
+	|		|		| adresu HL (z aktywnej pamieci)
+--------------------------------------------------------------------------------
+A0h	| X		| X		| Ustawia tryb SYMULACJA
+--------------------------------------------------------------------------------
+B0h	| X		| X		| Ustawia tryb dostepu do pamieci RAM
+--------------------------------------------------------------------------------
+BBh	| X		| X		| Ustawia tryb dostepu do pamieci ROM
+--------------------------------------------------------------------------------
+C0h	| X		|     MODE	| Ustawia predkosc transmisji na tryb
+	|		|		| MODE (patrz tab.1.)
+--------------------------------------------------------------------------------
+CCh	|    MODE 1	|    MODE 2	| Ustawia predkosc transmisji recznie:
+	|		|		| TH1  = MODE 1
+	|		|		| SMOD = MODE 2 (SMOD=1 gdy (MODE 2)>=1)
+--------------------------------------------------------------------------------
+D0h	| X		|    ADRES L	| Zapis 1 bajtu do pamieci procesora
+	|		|		| pod adres L
+--------------------------------------------------------------------------------
+DDh	| X		|    ADRES L	| Odczyt 1 bajtu z pamieci procesora
+	|		|		| z pod adresu L
+--------------------------------------------------------------------------------
+E0h	| X		| X		| Ustaw tryb POWER DOWN. Wyjscie z tego
+	|		|		| trybu mozliwe jest tylko poprzez
+	|		|		| reset emulatora. Standardowo emulator
+	|		|		| w momencie oczekiwania na rozkaz
+	|		|		| (dane) przechodzi do stanu IDLE
+--------------------------------------------------------------------------------
+F0h	| X		| X		| Wysyla dwubajtowy zapis wersji
+	|		|		| programu obslugi emulatora
+--------------------------------------------------------------------------------
+F1h	| X		| X		| Wysyla ciag znakow stanowiacych logo
+	|		|		| emulatora
+--------------------------------------------------------------------------------
+FFh	| X		| X		| Wysyla ciag znakow stanowiacych
+	|		|		|            CREDITS
+--------------------------------------------------------------------------------

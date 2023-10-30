@@ -1,0 +1,51 @@
+     1  0000: 02 00 03  	LJMP START
+     2                  
+     3  0003:           START:
+     4  0003: 75 81 1F  	MOV SP,#1FH
+     5  0006: 7F FF     	MOV R7,#0FFH
+     6  0008: 7E B0     	MOV R6,#0B0H
+     7  000A: 78 AA     	MOV R0,#10101010B
+     8  000C: 79 28     	MOV R1,#40
+     9                  
+    10  000E:           LEFT:
+    11  000E: B2 B2     	CPL P3.2
+    12  0010: 12 00 42  	LCALL SHOW
+    13  0013: 12 00 47  	LCALL DELAY
+    14  0016: B2 B2     	CPL P3.2
+    15  0018: 12 00 47  	LCALL DELAY
+    16  001B: E8        	MOV A,R0
+    17  001C: F4        	CPL A
+    18  001D: F8        	MOV R0,A
+    19  001E: D9 EE     	DJNZ R1,LEFT
+    20  0020: 79 14     	MOV R1,#20
+    21  0022: 78 33     	MOV R0,#00110011B
+    22  0024:           RIGHT:
+    23  0024: B2 B2     	CPL P3.2
+    24  0026: 12 00 42  	LCALL SHOW
+    25  0029: 12 00 47  	LCALL DELAY
+    26  002C: 12 00 47  	LCALL DELAY
+    27  002F: B2 B2     	CPL P3.2
+    28  0031: 12 00 47  	LCALL DELAY
+    29  0034: 12 00 47  	LCALL DELAY
+    30  0037: E8        	MOV A,R0
+    31  0038: F4        	CPL A
+    32  0039: F8        	MOV R0,A
+    33  003A: D9 E8     	DJNZ R1,RIGHT
+    34  003C: 79 28     	MOV R1,#40
+    35  003E: 78 AA     	MOV R0,#10101010B
+    36  0040: 80 CC     	SJMP LEFT
+    37                  
+    38                  
+    39  0042:           SHOW:
+    40  0042: E8        	MOV A,R0
+    41  0043: F4        	CPL A
+    42  0044: F5 90     	MOV P1,A
+    43  0046: 22        	RET
+    44                  
+    45  0047:           DELAY:
+    46  0047: 00        	NOP
+    47  0048: DF FD     	DJNZ R7,DELAY
+    48  004A: 7F FF     	MOV R7,#0FFH
+    49  004C: DE F9     	DJNZ R6,DELAY
+    50  004E: 7E B0     	MOV R6,#0B0H
+    51  0050: 22        	RET
