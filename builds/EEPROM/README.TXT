@@ -87,10 +87,3 @@
 	  rowniez wersje CMOS powyzszych ukladow
 
 
-4. Wszelkie komentarze i opinie prosze kierowac do autora programu na adres:
-----------------------------------------------------------------------------
-
-		Tomasz Nowakowski
-		Tel: (0-58) 683-08-43
-		ul. Radosna 3
-		83-000 Pruszcz Gdanski
