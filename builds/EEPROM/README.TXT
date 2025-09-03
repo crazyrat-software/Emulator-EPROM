@@ -10,7 +10,6 @@
 1. Zmiany w programie EEPROM.EXE
 2. Wymagania sprzetowe programu
 3. Parametry techniczne emulatora pamieci EPROM
-4. Adres autora
 
 
 
@@ -85,5 +84,6 @@
 		   27256 => 32 kB EPROM
 		   27512 => 64 kB EPROM 
 	  rowniez wersje CMOS powyzszych ukladow
+
 
 
